@@ -1,0 +1,92 @@
+export function initJourney(reducedMotion) {
+  const section = document.querySelector(".journey-pin");
+  const inner = document.getElementById("journeyPinInner");
+  const items = Array.from(document.querySelectorAll("[data-journey-item]"));
+  const fill = document.getElementById("journeyFill");
+  if (!section || !inner || !items.length) return;
+
+  const gsap = window.gsap;
+  const ScrollTrigger = window.ScrollTrigger;
+
+  if (reducedMotion || !gsap || !ScrollTrigger) {
+    // No motion: show everything plainly, no dimming, no active state —
+    // matches the same "all items visible" treatment mobile gets.
+    if (fill) fill.style.height = "100%";
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const titles = items.map((item) => item.querySelector(".journey-title"));
+  const indices = items.map((item) => item.querySelector(".journey-index"));
+
+  const ACCENT = "#b8a5ff";
+  const TITLE_DEFAULT = "#f2f1ee";
+  const INDEX_DEFAULT = "#616167";
+  const INACTIVE_OPACITY = 0.4;
+
+  // GSAP owns opacity/scale/color directly here — no CSS transition is
+  // defined for these properties, so there's nothing for it to fight with.
+  function setItemActive(i, active) {
+    gsap.to(items[i], {
+      opacity: active ? 1 : INACTIVE_OPACITY,
+      scale: active ? 1 : 0.97,
+      duration: 0.35,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
+    if (titles[i]) {
+      gsap.to(titles[i], { color: active ? ACCENT : TITLE_DEFAULT, duration: 0.3, overwrite: "auto" });
+    }
+    if (indices[i]) {
+      gsap.to(indices[i], { color: active ? ACCENT : INDEX_DEFAULT, duration: 0.3, overwrite: "auto" });
+    }
+  }
+
+  const mm = gsap.matchMedia();
+
+  mm.add("(min-width: 900px)", () => {
+    gsap.set(items, { opacity: INACTIVE_OPACITY, scale: 0.97 });
+    let currentIndex = -1;
+    setActive(0);
+
+    function setActive(idx) {
+      if (idx === currentIndex) return;
+      if (currentIndex >= 0) setItemActive(currentIndex, false);
+      setItemActive(idx, true);
+      currentIndex = idx;
+    }
+
+    const st = ScrollTrigger.create({
+      trigger: section,
+      start: "top top",
+      end: () => `+=${items.length * 360}`,
+      pin: inner,
+      pinSpacing: true,
+      anticipatePin: 1,
+      scrub: 0.5,
+      onUpdate: (self) => {
+        const idx = Math.min(items.length - 1, Math.floor(self.progress * items.length));
+        setActive(idx);
+        if (fill) fill.style.height = `${self.progress * 100}%`;
+      },
+      onLeaveBack: () => { if (fill) fill.style.height = "0%"; },
+      onLeave: () => { if (fill) fill.style.height = "100%"; }
+    });
+
+    return () => {
+      st.kill();
+      gsap.set(items, { clearProps: "opacity,transform" });
+      gsap.set(titles.filter(Boolean), { clearProps: "color" });
+      gsap.set(indices.filter(Boolean), { clearProps: "color" });
+    };
+  });
+
+  mm.add("(max-width: 899px)", () => {
+    // No pinning on touch/tablet, and no active/inactive distinction either
+    // — CSS already forces every item to full opacity here (see
+    // "all items visible" in the mobile spec), so there's nothing for this
+    // branch to drive beyond keeping the rail fill sensible.
+    if (fill) fill.style.height = "100%";
+  });
+}

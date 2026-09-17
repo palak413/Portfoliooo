@@ -1,0 +1,113 @@
+export function initProjectScroll(reducedMotion) {
+  const section = document.querySelector(".work-pin");
+  const wrap = document.querySelector(".work-track-wrap");
+  const track = document.getElementById("workTrack");
+  if (!section || !wrap || !track) return;
+
+  const gsap = window.gsap;
+  const ScrollTrigger = window.ScrollTrigger;
+
+  if (reducedMotion || !gsap || !ScrollTrigger) {
+    // No motion: stack the projects vertically instead of relying on any
+    // scroll-jacked or transform-driven layout.
+    wrap.style.overflow = "visible";
+    track.style.flexWrap = "wrap";
+    document.querySelectorAll(".work-slide").forEach((s) => {
+      s.style.minWidth = "100%";
+      s.style.width = "100%";
+    });
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+  const mm = gsap.matchMedia();
+  const slides = gsap.utils.toArray(".work-slide");
+
+  mm.add("(min-width: 900px)", () => {
+    const getDistance = () => track.scrollWidth - window.innerWidth;
+
+    const resetSlideStyles = () => {
+      slides.forEach((slide) => {
+        const visual = slide.querySelector(".work-slide-visual");
+        const copy = slide.querySelector(".work-slide-copy");
+        if (visual) gsap.set(visual, { clearProps: "transform,opacity" });
+        if (copy) gsap.set(copy, { clearProps: "transform,opacity" });
+      });
+    };
+
+    const tween = gsap.to(track, {
+      x: () => -getDistance(),
+      ease: "none",
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: () => `+=${getDistance() + window.innerHeight * 0.4}`,
+        scrub: 0.6,
+        pin: true,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onUpdate: () => {
+          const viewportCenter = window.innerWidth / 2;
+
+          slides.forEach((slide) => {
+            const visual = slide.querySelector(".work-slide-visual");
+            const copy = slide.querySelector(".work-slide-copy");
+            const rect = slide.getBoundingClientRect();
+            const center = rect.left + rect.width / 2;
+            const dist = center - viewportCenter;
+            const absDist = Math.abs(dist);
+            const proximity = Math.max(0, 1 - absDist / window.innerWidth);
+            const direction = dist < 0 ? -1 : 1; // which side it's approaching/leaving from
+
+            if (visual) {
+              gsap.set(visual, {
+                scale: 0.92 + proximity * 0.08,
+                opacity: 0.4 + proximity * 0.6,
+                rotation: (1 - proximity) * 2.5 * direction
+              });
+            }
+            if (copy) {
+              gsap.set(copy, {
+                x: (1 - proximity) * 40 * direction,
+                opacity: 0.35 + proximity * 0.65
+              });
+            }
+          });
+        },
+        // Once the pin naturally completes in either direction, drop the
+        // proximity-based inline styles entirely so nothing can linger at a
+        // stale intermediate scale/opacity/rotation once the section is no
+        // longer pinned and the page moves on to Journey.
+        onLeave: resetSlideStyles,
+        onLeaveBack: resetSlideStyles
+      }
+    });
+
+    return () => {
+      // A killed tween does not revert the inline styles its onUpdate set —
+      // without this, a resize that tears down and rebuilds this trigger
+      // leaves the last slide's transform/opacity stuck in place, which is
+      // exactly what makes a project visual appear to "bleed" into whatever
+      // comes next.
+      if (tween.scrollTrigger) tween.scrollTrigger.kill();
+      tween.kill();
+      gsap.set(track, { clearProps: "transform" });
+      resetSlideStyles();
+    };
+  });
+
+  mm.add("(max-width: 899px)", () => {
+    // Native swipeable scroll (see CSS) — add a light focus effect only.
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle("is-centered", entry.isIntersecting);
+        });
+      },
+      { root: wrap, threshold: 0.6 }
+    );
+    document.querySelectorAll(".work-slide").forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  });
+}

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  Must run before the browser attempts any scroll restoration on refresh/
+  back-forward navigation. Without this, a browser restoring a previous
+  scroll position can fight with the page's own layout and land the user
+  mid-hero instead of at the top. Placed first, before anything else.
+-->
+<script>
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+  if (!window.location.hash) {
+    window.scrollTo(0, 0);
+    // Back-forward cache restores can re-apply the old scroll position even
+    // with scrollRestoration set to manual — catch that case too.
+    window.addEventListener("pageshow", function (e) {
+      if (e.persisted && !window.location.hash) window.scrollTo(0, 0);
+    });
+  }
+</script>
+<title>Palak Kumari — Software Developer | React • AI • Problem Solving</title>
+<meta name="description" content="Palak Kumari is a third-year Computer/IT engineering student who builds web products with React and Node.js, explores applied AI, and solves problems through competitive programming and hackathons. Open to software engineering internships.">
+<meta name="color-scheme" content="dark">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Palak Kumari — Software Developer">
+<meta property="og:description" content="Third-year Computer/IT engineering student building web products with React, Node.js, and applied AI. Open to software engineering internships.">
+<meta property="og:url" content="https://palakkumari.dev">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="progress-bar" aria-hidden="true"><span id="progressFill"></span></div>
+
+<div class="entrance" id="entrance" aria-hidden="true">
+  <span class="entrance-mark" id="entrancePk">PK</span>
+  <span class="entrance-full" id="entranceFull">PALAK&nbsp;KUMARI</span>
+</div>
+
+<!--
+  Universal safety net: a plain inline classic script, not a module, not
+  dependent on GSAP or any file under js/ loading successfully. If those
+  fail for any reason (404, blocked CDN, wrong relative path after copying
+  the folder somewhere else), this still runs and guarantees the entrance
+  overlay is gone within 3 seconds no matter what.
+-->
+<script>
+  (function () {
+    window.setTimeout(function () {
+      var entrance = document.getElementById("entrance");
+      var stillStuck = entrance && !entrance.hasAttribute("hidden") && document.body.contains(entrance);
+      var jsRan = document.documentElement.classList.contains("reduced-motion") ||
+                  document.documentElement.classList.contains("no-js") ||
+                  (entrance && entrance.hasAttribute("hidden"));
+
+      if (!stillStuck && jsRan) return;
+
+      console.warn("[portfolio] main.js did not finish its job in time — revealing " +
+        "the page from a plain inline fallback instead. Check the DevTools Console " +
+        "and Network tabs for the real error (a 404 under js/ is the most common cause).");
+
+      if (entrance) entrance.remove();
+      document.body.classList.remove("no-scroll");
+
+      if (!jsRan) {
+        document.querySelectorAll(
+          "[data-reveal], .reveal-line-inner, [data-tline], [data-entrance]"
+        ).forEach(function (el) {
+          el.style.opacity = "1";
+          el.style.transform = "none";
+        });
+        document.querySelectorAll("[data-count-to]").forEach(function (el) {
+          var target = el.getAttribute("data-count-to");
+          var prefix = el.getAttribute("data-prefix") || "";
+          var suffix = el.getAttribute("data-suffix") || "";
+          el.textContent = prefix + target + suffix;
+        });
+      }
+    }, 3000);
+  })();
+</script>
+
+<canvas id="grid-canvas" aria-hidden="true"></canvas>
+
+<div class="cursor" id="cursor" aria-hidden="true">
+  <span class="cursor-dot"></span>
+  <span class="cursor-label" id="cursorLabel"></span>
+</div>
+
+<!-- ============ NAV ============ -->
+<header class="nav-wrap" id="navWrap">
+  <nav class="nav" aria-label="Primary">
+    <a href="#top" class="nav-mark" id="navMark">Palak<span>.</span></a>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navMenu" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav-menu" id="navMenu">
+      <ul class="nav-links">
+        <li><a href="#work" data-cursor="open">Work</a></li>
+        <li><a href="#proof" data-cursor="open">Proof</a></li>
+        <li><a href="#journey" data-cursor="open">Journey</a></li>
+        <li><a href="#about" data-cursor="open">About</a></li>
+        <li><a href="#contact" data-cursor="open">Contact</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span class="status-pill"><span class="status-dot"></span>Open to internships</span>
+        <button class="btn btn-ghost btn-sm terminal-trigger" id="terminalTrigger" aria-haspopup="dialog" aria-expanded="false">
+          <span class="cmd-prefix">$</span> terminal
+        </button>
+        <a class="btn btn-ghost btn-sm magnetic" href="resume.pdf" target="_blank" rel="noopener">Resume</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ============ HERO — full viewport, typography-first ============ -->
+  <section class="hero" id="top">
+    <div class="hero-glow" id="heroGlow" aria-hidden="true"></div>
+
+    <div class="hero-labels" aria-hidden="true">
+      <span class="hero-label" data-depth="0.6" style="top:20%; left:7%;" data-entrance="label">React</span>
+      <span class="hero-label" data-depth="0.9" style="top:16%; right:9%;" data-entrance="label">AI</span>
+      <span class="hero-label" data-depth="0.7" style="top:66%; left:6%;" data-entrance="label">C++</span>
+      <span class="hero-label" data-depth="1.1" style="top:72%; right:8%;" data-entrance="label">Node</span>
+      <span class="hero-label" data-depth="0.8" style="top:44%; right:16%;" data-entrance="label">Web3</span>
+    </div>
+
+    <div class="hero-inner wrap">
+      <p class="hero-index" data-entrance="kicker">01 / Portfolio</p>
+
+      <h1 class="hero-name" aria-label="Palak Kumari" data-cursor="grow">
+        <span class="reveal-line"><span class="reveal-line-inner" data-entrance="line">Palak</span></span>
+        <span class="reveal-line"><span class="reveal-line-inner" data-entrance="line">Kumari</span></span>
+      </h1>
+
+      <p class="hero-role" data-entrance="role">Software Developer</p>
+
+      <p class="hero-sub" data-entrance="sub">
+        Building web products, exploring AI, and solving problems through code —
+        as a third-year Computer/IT engineering student.
+      </p>
+
+      <div class="hero-actions" data-entrance="cta">
+        <a href="#work" class="btn btn-primary magnetic" data-cursor="view">View work</a>
+        <a href="https://github.com/palak413" class="btn btn-ghost magnetic" target="_blank" rel="noopener" data-cursor="open">GitHub ↗</a>
+      </div>
+    </div>
+
+    <div class="hero-visual" data-entrance="visual" data-parallax-depth="1.3">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          <span class="terminal-title">palak@dev — zsh</span>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <p data-tline><span class="ps1">palak@dev</span><span class="ps2"> ~ </span><span class="cmd">whoami</span></p>
+          <p data-tline class="out">palak@developer</p>
+          <p data-tline><span class="ps1">palak@dev</span><span class="ps2"> ~ </span><span class="cmd">cat focus.txt</span></p>
+          <p data-tline class="out">→ building web products</p>
+          <p data-tline class="out">→ exploring AI</p>
+          <p data-tline class="out">→ learning system design</p>
+          <p data-tline><span class="ps1">palak@dev</span><span class="ps2"> ~ </span><span class="cmd">status</span></p>
+          <p data-tline class="out out-accent">open to internship</p>
+          <p data-tline class="terminal-cursor-line"><span class="ps1">palak@dev</span><span class="ps2"> ~ </span><span class="blink">▍</span></p>
+        </div>
+      </div>
+    </div>
+
+    <button class="hero-scroll" id="heroScroll" data-entrance="scroll" aria-label="Scroll to stats">
+      <span>Scroll</span>
+      <span class="hero-scroll-line"></span>
+    </button>
+  </section>
+
+  <!-- ============ STATS — typography-driven, asymmetric ============ -->
+  <section class="stats" id="stats">
+    <div class="wrap stats-editorial" data-reveal-group>
+      <div class="stat-block stat-block--xl" data-reveal>
+        <p class="stat-num" data-count-to="300" data-suffix="+">0</p>
+        <p class="stat-tag">LeetCode problems</p>
+      </div>
+      <div class="stat-block stat-block--lg" data-reveal>
+        <p class="stat-num" data-count-to="1500" data-prefix="Top ">Top 0</p>
+        <p class="stat-tag">Google Big Code Challenge</p>
+      </div>
+      <div class="stat-block" data-reveal>
+        <p class="stat-num" data-count-to="3">0</p>
+        <p class="stat-tag">Featured projects</p>
+      </div>
+      <div class="stat-block" data-reveal>
+        <p class="stat-num" data-count-to="22">0</p>
+        <p class="stat-tag">Public repositories</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WORK — immersive horizontal showcase ============ -->
+  <section class="work-pin" id="work">
+    <div class="wrap work-head" data-reveal>
+      <p class="section-num">02 / Work</p>
+      <h2>Things I've built</h2>
+      <p class="section-sub">Three projects I'd actually walk you through in an interview — side by side, with the code one click away.</p>
+    </div>
+
+    <div class="work-track-wrap">
+      <div class="work-track" id="workTrack">
+
+        <article class="work-slide">
+          <div class="work-slide-visual" data-parallax-el>
+            <div class="frame">
+              <div class="frame-bar">
+                <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+                <span class="frame-title">PAWTHENTIC</span>
+              </div>
+              <!-- <div class="frame-body mock-pet">
+                <div class="mock-row">
+                  <span class="mock-chip">0x4F...19a2</span>
+                  <span class="mock-badge">Verified</span>
+                </div>
+                <div class="mock-card-photo"></div>
+                <div class="mock-line mock-line--60"></div>
+                <div class="mock-line mock-line--40"></div>
+                <div class="mock-btn">Adopt</div>
+              </div>
+            </div> -->
+            <!-- <p class="frame-caption">Placeholder UI — swap in a real screenshot when one's ready.</p> -->
+          </div>
+          <div class="work-slide-copy" data-parallax-copy>
+            <span class="project-number">01</span>
+            <p class="project-eyebrow">Blockchain / Full stack</p>
+            <h3>Adopt Me</h3>
+            <p class="project-pitch">A pet adoption platform where ownership history is verified on-chain, so buyers can trust where an animal actually came from.</p>
+            <ul class="project-stack" data-stagger-tags>
+              <li>React</li><li>Solidity</li><li>Node.js</li><li>MongoDB</li>
+            </ul>
+            <div class="project-details">
+              <p class="project-subhead">What I built</p>
+              <ul class="project-points">
+                <li>A React frontend for browsing listings and managing adoption requests</li>
+                <li>Solidity smart contracts that mint and transfer an NFT as proof of ownership</li>
+                <li>A Node.js/MongoDB backend for listings, user accounts, and adoption records</li>
+                <li>A verification flow that checks on-chain ownership before a transfer completes</li>
+              </ul>
+            </div>
+            <div class="project-links">
+              <a class="btn btn-ghost btn-sm magnetic" href="https://adoptmepetadoption.vercel.app/" target="_blank" rel="noopener" data-cursor="open">GitHub ↗</a>
+              <details class="case-study">
+                <summary>Why blockchain, not just a database</summary>
+                <p>Pet adoption scams usually come down to one thing: no one can verify who actually owned an animal before. Putting ownership transfer on-chain makes that history checkable by anyone, instead of relying on a listing site's word for it.</p>
+              </details>
+            </div>
+          </div>
+        </article>
+
+        <article class="work-slide">
+          <div class="work-slide-visual" data-parallax-el>
+            <div class="frame">
+              <div class="frame-bar">
+                <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+                <span class="frame-title">AI RESUME MATCHER</span>
+              </div>
+              <!-- <div class="frame-body mock-resume">
+                <div class="mock-panel">
+                  <div class="mock-line mock-line--80"></div>
+                  <div class="mock-line mock-line--60"></div>
+                  <div class="mock-line mock-line--70"></div>
+                </div>
+                <div class="mock-score">
+                  <span class="mock-score-num" data-count-to="82" data-suffix="%">0%</span>
+                  <span class="mock-score-label">match</span>
+                </div>
+              </div> -->
+            </div>
+            <!-- <p class="frame-caption">Placeholder UI — swap in a real screenshot when one's ready.</p> -->
+          </div>
+          <div class="work-slide-copy" data-parallax-copy>
+            <span class="project-number">02</span>
+            <p class="project-eyebrow">Applied AI</p>
+            <h3>AI Resume Matcher</h3>
+            <p class="project-pitch">Helps candidates see how well their resume actually matches a target role, using the Gemini API instead of simple keyword counting.</p>
+            <ul class="project-stack" data-stagger-tags>
+              <li>React</li><li>Express</li><li>Gemini API</li>
+            </ul>
+            <div class="project-details">
+              <p class="project-subhead">What I built</p>
+              <ul class="project-points">
+                <li>A React interface for pasting a resume and job description side by side</li>
+                <li>An Express API layer that structures the prompt and calls the Gemini API</li>
+                <li>A results view that surfaces where the resume aligns and where it falls short</li>
+              </ul>
+            </div>
+            <div class="project-links">
+              <a class="btn btn-ghost btn-sm magnetic" href="https://ai-resume-rouge.vercel.app/" target="_blank" rel="noopener" data-cursor="open">GitHub ↗</a>
+              <details class="case-study">
+                <summary>The actual problem it solves</summary>
+                <p>Most resume checkers just count overlapping keywords. This sends both documents to an LLM so the feedback is about substance — matching experience, not matching words.</p>
+              </details>
+            </div>
+          </div>
+        </article>
+
+        <article class="work-slide">
+          <div class="work-slide-visual" data-parallax-el>
+            <div class="frame">
+              <div class="frame-bar">
+                <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+                <span class="frame-title">FITQUEST</span>
+              </div>
+              <!-- <div class="frame-body mock-fit">
+                <div class="mock-ring"><span>Lv. 7</span></div>
+                <div class="mock-quest">
+                  <div class="mock-line mock-line--50"></div>
+                  <div class="mock-bar"><span></span></div>
+                </div>
+              </div>
+            </div> -->
+            <!-- <p class="frame-caption">Placeholder UI — swap in a real screenshot when one's ready.</p> -->
+          </div>
+          <div class="work-slide-copy" data-parallax-copy>
+            <span class="project-number">03</span>
+            <p class="project-eyebrow">Frontend / Product</p>
+            <h3>FitQuest</h3>
+            <p class="project-pitch">A gamified fitness app that turns workouts into quests and levels, built to make consistency feel less like a chore.</p>
+            <ul class="project-stack" data-stagger-tags>
+              <li>React</li><li>Firebase</li>
+            </ul>
+            <div class="project-details">
+              <p class="project-subhead">What I built</p>
+              <ul class="project-points">
+                <li>A quest system that converts workouts into completable challenges with progress tracking</li>
+                <li>Firebase auth and Firestore for user profiles, streaks, and quest state</li>
+                <li>A responsive interface designed around quick daily check-ins</li>
+              </ul>
+            </div>
+            <div class="project-links">
+              <a class="btn btn-ghost btn-sm magnetic" href="https://github.com/palak413/MINDLOOM" target="_blank" rel="noopener" data-cursor="open">GitHub ↗</a>
+              <details class="case-study">
+                <summary>The design bet</summary>
+                <p>Fitness apps fail when logging a workout feels like data entry. Framing it as quests and levels was a deliberate attempt to make the habit-forming part feel like the point, not the tax.</p>
+              </details>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+
+  </section>
+
+  <!-- ============ TYPE BREAK — visual rhythm ============ -->
+  <section class="typebreak">
+    <div class="wrap">
+      <p class="typebreak-text">
+        <span class="reveal-line"><span>I don't just</span></span>
+        <span class="reveal-line"><span>write code.</span></span>
+      </p>
+      <p class="typebreak-text typebreak-text--accent">
+        <span class="reveal-line"><span>I build</span></span>
+        <span class="reveal-line"><span>things.</span></span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ PROOF — asymmetric editorial ============ -->
+  <section class="section section-tight" id="proof">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="section-num">03 / Proof</p>
+        <h2>Beyond the classroom</h2>
+        <p>Outside of coursework, in contests, hackathons, and communities.</p>
+      </div>
+
+      <div class="proof-board">
+        <div class="proof-item proof-item--a" data-proof-anim="y">
+          <p class="proof-num">300+</p>
+          <p class="proof-tag">LeetCode problems solved</p>
+        </div>
+        <div class="proof-item proof-item--b" data-proof-anim="scale">
+          <p class="proof-num">Top 1500</p>
+          <p class="proof-tag">Google Big Code Challenge</p>
+        </div>
+        <div class="proof-item proof-item--c" data-proof-anim="x">
+          <p class="proof-tag proof-tag--lead">Google Developer Groups</p>
+          <p class="proof-sub">Secretary</p>
+        </div>
+        <!-- <div class="proof-item proof-item--d" data-proof-anim="x">
+          <p class="proof-tag proof-tag--lead">Avalanche Hackathon</p>
+          <p class="proof-sub">Qualified — Round 2</p>
+        </div> -->
+        <div class="proof-item proof-item--e" data-proof-anim="y">
+          <p class="proof-tag proof-tag--lead">Flipkart GRID</p>
+          <p class="proof-sub">Participant</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ JOURNEY — pinned, scroll-driven ============ -->
+  <section class="journey-pin" id="journey">
+    <div class="wrap journey-head" data-reveal>
+      <p class="section-num">04 / Journey</p>
+      <h2>How I got here</h2>
+      <p>No fixed dates — just the order the pieces came together in.</p>
+    </div>
+
+    <div class="journey-pin-inner" id="journeyPinInner">
+      <div class="journey-rail" aria-hidden="true"><div class="journey-rail-fill" id="journeyFill"></div></div>
+      <ol class="journey-list" id="journeyList">
+        <li class="journey-item" data-journey-item>
+          <span class="journey-index">01</span>
+          <p class="journey-title">Frontend &amp; React</p>
+          <p class="journey-desc">Started building interfaces and learning how the web actually fits together.</p>
+        </li>
+        <li class="journey-item" data-journey-item>
+          <span class="journey-index">02</span>
+          <p class="journey-title">Competitive programming</p>
+          <p class="journey-desc">Moved into DSA and contests — 300+ problems in, and counting.</p>
+        </li>
+        <li class="journey-item" data-journey-item>
+          <span class="journey-index">03</span>
+          <p class="journey-title">Hackathons</p>
+          <p class="journey-desc">Started shipping under time pressure: Avalanche, Flipkart GRID.</p>
+        </li>
+        <li class="journey-item" data-journey-item>
+          <span class="journey-index">04</span>
+          <p class="journey-title">Open source &amp; developer communities</p>
+          <p class="journey-desc">Took on Secretary at Google Developer Groups and started contributing beyond my own repos.</p>
+        </li>
+        <li class="journey-item" data-journey-item>
+          <span class="journey-index">05</span>
+          <p class="journey-title">AI &amp; full stack</p>
+          <p class="journey-desc">Built Pawthentic and AI Resume Matcher — combining frontend, backend, and applied AI.</p>
+        </li>
+        <li class="journey-item" data-journey-item>
+          <span class="journey-index">06</span>
+          <p class="journey-title">System design</p>
+          <p class="journey-desc">Now — learning how the same ideas hold up at a larger scale.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ TOOLKIT — interactive typography ============ -->
+  <section class="section section-tight" id="toolkit">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="section-num">05 / Toolkit</p>
+        <h2>What I build with</h2>
+        <p>Hover a technology — the rest steps back.</p>
+      </div>
+
+      <div class="tk-cloud" data-reveal>
+        <span class="tk-word tk-word--md" tabindex="0" data-tk-word data-desc="Component-based UI for every frontend I ship">React</span>
+        <span class="tk-word tk-word--sm" tabindex="0" data-tk-word data-desc="File-based routing and SSR when a project needs it">Next.js</span>
+        <span class="tk-word tk-word--sm" tabindex="0" data-tk-word data-desc="Backend runtime for everything server-side">Node.js</span>
+        <span class="tk-word tk-word--xs" tabindex="0" data-tk-word data-desc="Routing and middleware for REST APIs">Express</span>
+        <span class="tk-word tk-word--sm" tabindex="0" data-tk-word data-desc="Primary language for contests and DSA">C++</span>
+        <span class="tk-word tk-word--lg" tabindex="0" data-tk-word data-desc="What most of this portfolio is made of">Build</span>
+        <span class="tk-word tk-word--sm" tabindex="0" data-tk-word data-desc="Document store behind Pawthentic">MongoDB</span>
+        <span class="tk-word tk-word--xs" tabindex="0" data-tk-word data-desc="For scripting, AI experiments, and quick tools">Python</span>
+        <span class="tk-word tk-word--md" tabindex="0" data-tk-word data-desc="300+ problems in, still solving daily">DSA</span>
+        <span class="tk-word tk-word--sm" tabindex="0" data-tk-word data-desc="Powers the resume matching in my AI project">Gemini API</span>
+        <span class="tk-word tk-word--md" tabindex="0" data-tk-word data-desc="Smart contract language behind Pawthentic">Solidity</span>
+        <span class="tk-word tk-word--xs" tabindex="0" data-tk-word data-desc="Auth and realtime data behind FitQuest">Firebase</span>
+        <span class="tk-word tk-word--sm" tabindex="0" data-tk-word data-desc="Utility-first styling — fast to iterate in">Tailwind</span>
+        <span class="tk-word tk-word--xs" tabindex="0" data-tk-word data-desc="Relational database for structured data">MySQL</span>
+        <span class="tk-word tk-word--sm" tabindex="0" data-tk-word data-desc="Processes, memory, concurrency fundamentals">OS</span>
+        <span class="tk-word tk-word--xs" tabindex="0" data-tk-word data-desc="Database internals and query design">DBMS</span>
+      </div>
+      <p class="skill-detail" id="skillDetail" aria-live="polite">Hover or focus a technology to see how I use it.</p>
+    </div>
+  </section>
+
+  <!-- ============ NOW — minimal status ============ -->
+  <section class="section section-tight" id="now">
+    <div class="wrap now-grid">
+      <div class="section-head" data-reveal>
+        <p class="section-num">06 / Now</p>
+        <h2>Currently exploring</h2>
+        <p>Still a student — this is what I'm actively getting better at right now.</p>
+      </div>
+
+      <ul class="now-list" data-reveal-group>
+        <li data-reveal><span class="now-dot"></span><span class="now-label">Node.js</span><span class="now-note">Backend architecture beyond CRUD routes</span></li>
+        <li data-reveal><span class="now-dot"></span><span class="now-label">System design</span><span class="now-note">Reasoning about scale and trade-offs</span></li>
+        <li data-reveal><span class="now-dot"></span><span class="now-label">AI</span><span class="now-note">Applying LLMs to real products</span></li>
+      </ul>
+      <div class="learning-line" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ============ HOW I THINK — scroll-active list ============ -->
+  <section class="section section-tight" id="approach">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="section-num">07 / Approach</p>
+        <h2>How I think about a problem</h2>
+        <p>The process I default to, whether it's a contest problem or a product feature.</p>
+      </div>
+
+      <ol class="process-list">
+        <li data-approach-item><span class="process-num">01</span><div><p class="process-title">Understand</p><p class="process-desc">Figure out the actual problem before touching the actual code.</p></div></li>
+        <li data-approach-item><span class="process-num">02</span><div><p class="process-title">Break down</p><p class="process-desc">Split it into pieces small enough to reason about individually.</p></div></li>
+        <li data-approach-item><span class="process-num">03</span><div><p class="process-title">Build</p><p class="process-desc">Get to a working version — not a perfect one.</p></div></li>
+        <li data-approach-item><span class="process-num">04</span><div><p class="process-title">Improve</p><p class="process-desc">Test it, find where it breaks, and fix that.</p></div></li>
+        <li data-approach-item><span class="process-num">05</span><div><p class="process-title">Ship</p><p class="process-desc">Make it usable by someone who isn't me.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="section" id="about">
+    <div class="wrap about-grid" data-reveal-group>
+      <div class="section-head section-head--tight" data-reveal>
+        <p class="section-num">08 / About</p>
+        <h2>About</h2>
+      </div>
+      <div class="about-copy" data-reveal>
+        <p>
+          I'm a third-year Computer/IT engineering student at Army Institute of Technology, Pune,
+          who spends most of my time somewhere between a React codebase and a LeetCode tab.
+          I like building complete products — frontend, backend, and the occasional smart contract —
+          more than I like keeping to one layer of the stack.
+        </p>
+        <p>
+          Outside of coursework, that's meant competitive programming, hackathons like Avalanche and
+          Flipkart GRID, and running things as Secretary at Google Developer Groups.
+        </p>
+        <p class="about-tags">Currently exploring: <span>Node.js</span> · <span>System Design</span> · <span>AI</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT — dramatic close ============ -->
+  <section class="section contact" id="contact">
+    <div class="contact-glow" aria-hidden="true"></div>
+    <div class="wrap">
+      <h2 class="contact-title" aria-label="Let's build something." data-cursor="grow">
+        <span class="reveal-line"><span>Let's</span></span>
+        <span class="reveal-line"><span>build</span></span>
+        <span class="reveal-line"><span>something.</span></span>
+      </h2>
+      <p class="contact-sub" data-reveal>I'm currently looking for software engineering internships and interesting problems to work on.</p>
+      <div class="contact-actions" data-reveal>
+        <a class="btn btn-primary magnetic" href="mailto:palaksingh06005@gmail.com" data-cursor="open">Get in touch ↗</a>
+        <a class="btn btn-ghost magnetic" href="https://www.linkedin.com/in/palak-kumari-6980a7314/" target="_blank" rel="noopener" data-cursor="open">LinkedIn ↗</a>
+        <a class="btn btn-ghost magnetic" href="https://github.com/palak413" target="_blank" rel="noopener" data-cursor="open">GitHub ↗</a>
+        <a class="btn btn-ghost magnetic" href="resume.pdf" target="_blank" rel="noopener" data-cursor="open">Resume</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <p>Palak Kumari</p>
+    <p class="footer-note">Built with curiosity and too much coffee.</p>
+    <p class="footer-links">
+      <a href="https://github.com/palak413" target="_blank" rel="noopener">GitHub</a>
+      <span aria-hidden="true">·</span>
+      <a href="https://www.linkedin.com/in/palak-kumari-6980a7314/" target="_blank" rel="noopener">LinkedIn</a>
+      <span aria-hidden="true">·</span>
+      <a href="mailto:palaksingh06005@gmail.com">Email</a>
+    </p>
+  </div>
+</footer>
+
+<!-- Terminal easter egg -->
+<div class="terminal-overlay" id="terminalOverlay" role="dialog" aria-modal="true" aria-label="Command terminal" hidden>
+  <div class="terminal-overlay-box">
+    <div class="terminal-bar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="terminal-title">palak@dev — terminal</span>
+      <button class="terminal-close" id="terminalClose" aria-label="Close terminal">×</button>
+    </div>
+    <div class="terminal-overlay-log" id="terminalLog" aria-live="polite">
+      <p class="out">Type <span class="cmd">help</span> to see available commands.</p>
+    </div>
+    <div class="terminal-overlay-input-row">
+      <span class="ps1">palak@dev</span><span class="ps2"> ~ </span>
+      <input id="terminalInput" class="terminal-input" autocomplete="off" spellcheck="false" aria-label="Terminal command input">
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
